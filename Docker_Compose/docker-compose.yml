@@ -1,0 +1,70 @@
+services:
+  backend:
+    # Build the backend image using the Dockerfile inside ./Backend
+    build: ./Backend
+
+    ports:
+      # HOST_PORT:CONTAINER_PORT
+      # Access the backend at http://localhost:8080
+      # The Express app is actually running on port 3000 inside the container.
+      - "8080:3000"
+
+    volumes:
+      # Bind Mount
+      # Sync the local Backend folder with /app inside the container.
+      # Any code changes on your PC are reflected immediately.
+      - ./Backend:/app
+
+      # Named Volume
+      # Store node_modules separately inside Docker.
+      #
+      # Why?
+      # The bind mount above would replace the entire /app directory,
+      # including node_modules. This volume keeps Linux-compatible
+      # dependencies inside Docker instead of using Windows node_modules.
+      - backend_node_modules:/app/node_modules
+
+    # Start the backend using nodemon so it automatically restarts
+    # whenever backend source files change.
+    command: npx nodemon -L server.js
+
+  frontend:
+    # Build the frontend image using the Dockerfile inside ./Frontend
+    build: ./Frontend
+
+    ports:
+      # Access the Vite app from the browser.
+      # Vite runs on port 5173 inside the container.
+      - "5173:5173"
+
+    volumes:
+      # Bind Mount
+      # Sync the local frontend source code with the container
+      # for instant Hot Module Reloading (HMR).
+      - ./Frontend:/app
+
+      # Named Volume
+      # Keep node_modules inside Docker.
+      # Prevents Windows/macOS node_modules from replacing
+      # the Linux node_modules inside the container.
+      - frontend_node_modules:/app/node_modules
+
+    # Start the Vite development server.
+    # (package.json should contain "vite --host")
+    command: npm run dev
+
+# Named Docker volumes
+#
+# These volumes persist data even if the containers are removed.
+# They are managed by Docker, not by your project folder.
+#
+# Delete them with:
+# docker compose down -v
+#
+# Useful when:
+# - package.json changes
+# - node_modules becomes corrupted
+# - you want a completely fresh dependency installation
+volumes:
+  backend_node_modules:
+  frontend_node_modules:

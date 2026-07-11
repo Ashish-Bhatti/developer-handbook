@@ -1,0 +1,31 @@
+# Use the official Node.js 20 image based on Alpine Linux (lightweight)
+FROM node:20-alpine
+
+# Set the working directory inside the container to /app.
+# If /app doesn't exist, Docker creates it automatically.
+# Every command below (COPY, RUN, CMD) will execute relative to /app.
+WORKDIR /app
+
+# Copy package.json and package-lock.json from your local project
+# into the current working directory (/app).
+#
+# package*.json matches:
+#   - package.json
+#   - package-lock.json
+#
+# "./" means "current working directory", which is /app because of WORKDIR.
+COPY package*.json ./
+
+# Install all project dependencies inside /app/node_modules
+RUN npm install
+
+# Copy the rest of your project files into /app.
+#
+# First "."  -> Current folder on your computer (project root)
+# Second "./" -> Current folder inside the container (/app)
+COPY . .
+
+# Command to run when the container starts.
+# Since WORKDIR is /app, Docker runs:
+# node /app/server.js
+CMD ["node", "server.js"]
