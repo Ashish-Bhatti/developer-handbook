@@ -1,0 +1,28 @@
+# STAGE 1: Build the frontend
+FROM node:20-alpine AS frontend-setup
+
+WORKDIR /app
+
+COPY ./Frontend/package*.json ./
+
+RUN npm install
+
+COPY ./Frontend ./
+
+RUN npm run build
+
+# STAGE 2 : fullstack image
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY ./Backend/package*.json ./
+
+RUN npm install
+
+COPY ./Backend ./
+
+# it will copy from the 1st stage in which we build dist folder in first stage here we are copying that dist folder in this stage in /public folder
+COPY --from=frontend-setup /app/dist /app/public
+
+CMD [ "node", "server.js" ]
